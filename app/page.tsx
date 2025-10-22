@@ -77,12 +77,12 @@ export default function Home() {
 
       {/* Background Beams with Collision */}
       <BackgroundBeamsWithCollision className="absolute inset-0 z-10 bg-transparent">
-        <div className="relative z-20 flex items-center justify-center min-h-screen p-8">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold mb-4 text-white">
+        <div className="relative z-20 flex items-center justify-center min-h-screen px-4 py-8 sm:p-8">
+          <div className="text-center max-w-6xl w-full">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white leading-tight px-2">
               The Day of Mayang's Crash Out
             </h1>
-            <p className="text-xl text-gray-300 mb-12">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 sm:mb-12">
               Extended Countdown Timer
             </p>
 
@@ -95,57 +95,51 @@ export default function Home() {
                   alt=""
                   width={600}
                   height={600}
-                  className="opacity-15 select-none"
+                  className="opacity-15 select-none w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] h-auto"
                   priority
                 />
               </div>
 
               {/* Timer Content */}
-              <div className="relative flex gap-8 justify-center items-center mb-4">
+              <div className="relative grid grid-cols-4 gap-2 sm:gap-4 md:gap-6 lg:gap-8 justify-center items-start mb-4 max-w-5xl mx-auto">
                 <div className="flex flex-col items-center">
-                  <div className="text-8xl font-bold mb-2 text-white">
+                  <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
                     <SlidingNumber value={timeLeft.days} padStart={false} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Days
                   </span>
                 </div>
 
-                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
                 <div className="flex flex-col items-center">
-                  <div className="text-8xl font-bold mb-2 text-white">
+                  <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
                     <SlidingNumber value={timeLeft.hours} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Hours
                   </span>
                 </div>
 
-                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
                 <div className="flex flex-col items-center">
-                  <div className="text-8xl font-bold mb-2 text-white">
+                  <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
                     <SlidingNumber value={timeLeft.minutes} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Minutes
                   </span>
                 </div>
 
-                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
                 <div className="flex flex-col items-center">
-                  <div className="text-8xl font-bold mb-2 text-white">
+                  <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
                     <SlidingNumber value={timeLeft.seconds} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Seconds
                   </span>
                 </div>
               </div>
 
-              <p className="text-lg text-gray-500 mt-4">
+              <p className="text-sm sm:text-base md:text-lg text-gray-500 mt-4 px-4">
                 {phase === "before5pm" && "Countdown to 5 PM, October 22, 2025"}
                 {phase === "after5pm" &&
                   "Countdown to End of Day, October 22, 2025"}
