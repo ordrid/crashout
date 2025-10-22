@@ -1,28 +1,50 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { SlidingNumber } from '@/components/motion-primitives/sliding-number';
-import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { SlidingNumber } from "@/components/motion-primitives/sliding-number";
+import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 
 export default function Home() {
-  const targetDate = new Date('2025-10-22T00:00:00').getTime();
+  const fivePMDate = new Date("2025-10-22T17:00:00").getTime();
+  const endOfDayDate = new Date("2025-10-22T23:59:59").getTime();
+
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
+  const [phase, setPhase] = useState<"before5pm" | "after5pm" | "ended">(
+    "before5pm"
+  );
 
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
+      let targetDate: number;
+
+      // Determine which phase we're in
+      if (now < fivePMDate) {
+        setPhase("before5pm");
+        targetDate = fivePMDate;
+      } else if (now < endOfDayDate) {
+        setPhase("after5pm");
+        targetDate = endOfDayDate;
+      } else {
+        setPhase("ended");
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
       const difference = targetDate - now;
 
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          hours: Math.floor(
+            (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          ),
           minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((difference % (1000 * 60)) / 1000),
         });
@@ -35,7 +57,7 @@ export default function Home() {
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [targetDate]);
+  }, []);
 
   return (
     <div className="min-h-screen w-full relative bg-black">
@@ -57,8 +79,12 @@ export default function Home() {
       <BackgroundBeamsWithCollision className="absolute inset-0 z-10 bg-transparent">
         <div className="relative z-20 flex items-center justify-center min-h-screen p-8">
           <div className="text-center">
-            <h1 className="text-6xl font-bold mb-4 text-white">The Day of Mayang's Crash Out</h1>
-            <p className="text-xl text-gray-300 mb-12">Countdown Timer</p>
+            <h1 className="text-6xl font-bold mb-4 text-white">
+              The Day of Mayang's Crash Out
+            </h1>
+            <p className="text-xl text-gray-300 mb-12">
+              Extended Countdown Timer
+            </p>
 
             {/* Timer with Money Bomb Background */}
             <div className="relative">
@@ -80,7 +106,9 @@ export default function Home() {
                   <div className="text-8xl font-bold mb-2 text-white">
                     <SlidingNumber value={timeLeft.days} padStart={false} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">Days</span>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                    Days
+                  </span>
                 </div>
 
                 <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
@@ -89,7 +117,9 @@ export default function Home() {
                   <div className="text-8xl font-bold mb-2 text-white">
                     <SlidingNumber value={timeLeft.hours} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">Hours</span>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                    Hours
+                  </span>
                 </div>
 
                 <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
@@ -98,7 +128,9 @@ export default function Home() {
                   <div className="text-8xl font-bold mb-2 text-white">
                     <SlidingNumber value={timeLeft.minutes} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">Minutes</span>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                    Minutes
+                  </span>
                 </div>
 
                 <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
@@ -107,11 +139,18 @@ export default function Home() {
                   <div className="text-8xl font-bold mb-2 text-white">
                     <SlidingNumber value={timeLeft.seconds} padStart={true} />
                   </div>
-                  <span className="text-xl text-gray-400 uppercase tracking-wider">Seconds</span>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">
+                    Seconds
+                  </span>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-500 mt-4">Countdown to October 22, 2025</p>
+              <p className="text-lg text-gray-500 mt-4">
+                {phase === "before5pm" && "Countdown to 5 PM, October 22, 2025"}
+                {phase === "after5pm" &&
+                  "Countdown to End of Day, October 22, 2025"}
+                {phase === "ended" && "The day has ended!"}
+              </p>
             </div>
           </div>
         </div>
