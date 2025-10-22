@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { SlidingNumber } from '@/components/motion-primitives/sliding-number';
 import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
 
@@ -59,43 +60,59 @@ export default function Home() {
             <h1 className="text-6xl font-bold mb-4 text-white">The Day of Mayang's Crash Out</h1>
             <p className="text-xl text-gray-300 mb-12">Countdown Timer</p>
 
-            <div className="flex gap-8 justify-center items-center mb-4">
-              <div className="flex flex-col items-center">
-                <div className="text-8xl font-bold mb-2 text-white">
-                  <SlidingNumber value={timeLeft.days} padStart={false} />
-                </div>
-                <span className="text-xl text-gray-400 uppercase tracking-wider">Days</span>
+            {/* Timer with Money Bomb Background */}
+            <div className="relative">
+              {/* Semi-transparent Money Time Bomb Image */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <Image
+                  src="/money-time-bomb.png"
+                  alt=""
+                  width={600}
+                  height={600}
+                  className="opacity-15 select-none"
+                  priority
+                />
               </div>
 
-              <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
-              <div className="flex flex-col items-center">
-                <div className="text-8xl font-bold mb-2 text-white">
-                  <SlidingNumber value={timeLeft.hours} padStart={true} />
+              {/* Timer Content */}
+              <div className="relative flex gap-8 justify-center items-center mb-4">
+                <div className="flex flex-col items-center">
+                  <div className="text-8xl font-bold mb-2 text-white">
+                    <SlidingNumber value={timeLeft.days} padStart={false} />
+                  </div>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">Days</span>
                 </div>
-                <span className="text-xl text-gray-400 uppercase tracking-wider">Hours</span>
+
+                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
+
+                <div className="flex flex-col items-center">
+                  <div className="text-8xl font-bold mb-2 text-white">
+                    <SlidingNumber value={timeLeft.hours} padStart={true} />
+                  </div>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">Hours</span>
+                </div>
+
+                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
+
+                <div className="flex flex-col items-center">
+                  <div className="text-8xl font-bold mb-2 text-white">
+                    <SlidingNumber value={timeLeft.minutes} padStart={true} />
+                  </div>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">Minutes</span>
+                </div>
+
+                <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
+
+                <div className="flex flex-col items-center">
+                  <div className="text-8xl font-bold mb-2 text-white">
+                    <SlidingNumber value={timeLeft.seconds} padStart={true} />
+                  </div>
+                  <span className="text-xl text-gray-400 uppercase tracking-wider">Seconds</span>
+                </div>
               </div>
 
-              <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
-              <div className="flex flex-col items-center">
-                <div className="text-8xl font-bold mb-2 text-white">
-                  <SlidingNumber value={timeLeft.minutes} padStart={true} />
-                </div>
-                <span className="text-xl text-gray-400 uppercase tracking-wider">Minutes</span>
-              </div>
-
-              <span className="text-8xl font-bold text-gray-600 mb-8">:</span>
-
-              <div className="flex flex-col items-center">
-                <div className="text-8xl font-bold mb-2 text-white">
-                  <SlidingNumber value={timeLeft.seconds} padStart={true} />
-                </div>
-                <span className="text-xl text-gray-400 uppercase tracking-wider">Seconds</span>
-              </div>
+              <p className="text-sm text-gray-500 mt-4">Countdown to October 22, 2025</p>
             </div>
-
-            <p className="text-sm text-gray-500">Countdown to October 22, 2025</p>
           </div>
         </div>
       </BackgroundBeamsWithCollision>
