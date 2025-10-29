@@ -6,41 +6,53 @@ import { SlidingNumber } from "@/components/motion-primitives/sliding-number";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 
 export default function Home() {
-  const fivePMDate = new Date("2025-10-22T17:00:00").getTime();
-  const endOfDayDate = new Date("2025-10-22T23:59:59").getTime();
+  const crashoutDate = new Date("2025-10-22T00:00:00").getTime();
 
-  const [timeLeft, setTimeLeft] = useState({
+  const [timeElapsed, setTimeElapsed] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
-  const [phase, setPhase] = useState<"before5pm" | "after5pm" | "ended">(
-    "before5pm"
-  );
+
+  const [timerStopped, setTimerStopped] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [attemptsRemaining, setAttemptsRemaining] = useState(3);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [showCongrats, setShowCongrats] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Load lockout state from localStorage
+  useEffect(() => {
+    const savedLockout = localStorage.getItem("lockoutUntil");
+    const savedAttempts = localStorage.getItem("attemptsRemaining");
+
+    if (savedLockout) {
+      const lockoutTime = parseInt(savedLockout);
+      if (lockoutTime > Date.now()) {
+        setLockoutUntil(lockoutTime);
+        setAttemptsRemaining(0);
+      } else {
+        localStorage.removeItem("lockoutUntil");
+        localStorage.setItem("attemptsRemaining", "3");
+      }
+    }
+
+    if (savedAttempts) {
+      setAttemptsRemaining(parseInt(savedAttempts));
+    }
+  }, []);
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
+    if (timerStopped) return;
+
+    const calculateTimeElapsed = () => {
       const now = new Date().getTime();
-      let targetDate: number;
-
-      // Determine which phase we're in
-      if (now < fivePMDate) {
-        setPhase("before5pm");
-        targetDate = fivePMDate;
-      } else if (now < endOfDayDate) {
-        setPhase("after5pm");
-        targetDate = endOfDayDate;
-      } else {
-        setPhase("ended");
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
-
-      const difference = targetDate - now;
+      const difference = now - crashoutDate;
 
       if (difference > 0) {
-        setTimeLeft({
+        setTimeElapsed({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor(
             (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -49,15 +61,80 @@ export default function Home() {
           seconds: Math.floor((difference % (1000 * 60)) / 1000),
         });
       } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setTimeElapsed({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       }
     };
 
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
+    calculateTimeElapsed();
+    const interval = setInterval(calculateTimeElapsed, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timerStopped]);
+
+  // Check lockout expiry
+  useEffect(() => {
+    if (lockoutUntil && lockoutUntil <= Date.now()) {
+      setLockoutUntil(null);
+      setAttemptsRemaining(3);
+      localStorage.removeItem("lockoutUntil");
+      localStorage.setItem("attemptsRemaining", "3");
+    }
+  }, [lockoutUntil]);
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (lockoutUntil && lockoutUntil > Date.now()) {
+      const minutesLeft = Math.ceil((lockoutUntil - Date.now()) / 60000);
+      setErrorMessage(`Too many attempts. Try again in ${minutesLeft} minute(s).`);
+      return;
+    }
+
+    if (attemptsRemaining <= 0) {
+      setErrorMessage("No attempts remaining. Please wait 30 minutes.");
+      return;
+    }
+
+    setIsVerifying(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.isValid) {
+        setTimerStopped(true);
+        setShowCongrats(true);
+        localStorage.removeItem("lockoutUntil");
+        localStorage.removeItem("attemptsRemaining");
+      } else {
+        const newAttempts = attemptsRemaining - 1;
+        setAttemptsRemaining(newAttempts);
+        localStorage.setItem("attemptsRemaining", newAttempts.toString());
+
+        if (newAttempts === 0) {
+          const lockout = Date.now() + (30 * 60 * 1000); // 30 minutes
+          setLockoutUntil(lockout);
+          localStorage.setItem("lockoutUntil", lockout.toString());
+          setErrorMessage("No attempts remaining. Locked out for 30 minutes.");
+        } else {
+          setErrorMessage(`Incorrect password. ${newAttempts} attempt(s) remaining.`);
+        }
+      }
+    } catch (error) {
+      setErrorMessage("Error verifying password. Please try again.");
+    } finally {
+      setPasswordInput("");
+      setIsVerifying(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full relative bg-black">
@@ -80,10 +157,10 @@ export default function Home() {
         <div className="relative z-20 flex items-center justify-center min-h-screen px-4 py-8 sm:p-8">
           <div className="text-center max-w-6xl w-full">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white leading-tight px-2">
-              The Day of Mayang's Crash Out
+              Time Since Mayang's Crash Out
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 sm:mb-12">
-              Extended Countdown Timer
+              {timerStopped ? "Timer Stopped!" : "Time Elapsed Since October 22, 2025"}
             </p>
 
             {/* Timer with Money Bomb Background */}
@@ -104,7 +181,7 @@ export default function Home() {
               <div className="relative grid grid-cols-4 gap-2 sm:gap-4 md:gap-6 lg:gap-8 justify-center items-start mb-4 max-w-5xl mx-auto">
                 <div className="flex flex-col items-center">
                   <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
-                    <SlidingNumber value={timeLeft.days} padStart={false} />
+                    <SlidingNumber value={timeElapsed.days} padStart={false} />
                   </div>
                   <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Days
@@ -113,7 +190,7 @@ export default function Home() {
 
                 <div className="flex flex-col items-center">
                   <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
-                    <SlidingNumber value={timeLeft.hours} padStart={true} />
+                    <SlidingNumber value={timeElapsed.hours} padStart={true} />
                   </div>
                   <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Hours
@@ -122,7 +199,7 @@ export default function Home() {
 
                 <div className="flex flex-col items-center">
                   <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
-                    <SlidingNumber value={timeLeft.minutes} padStart={true} />
+                    <SlidingNumber value={timeElapsed.minutes} padStart={true} />
                   </div>
                   <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Minutes
@@ -131,24 +208,68 @@ export default function Home() {
 
                 <div className="flex flex-col items-center">
                   <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-1 sm:mb-2 text-white tabular-nums">
-                    <SlidingNumber value={timeLeft.seconds} padStart={true} />
+                    <SlidingNumber value={timeElapsed.seconds} padStart={true} />
                   </div>
                   <span className="text-xs sm:text-sm md:text-base lg:text-xl text-gray-400 uppercase tracking-wider">
                     Seconds
                   </span>
                 </div>
               </div>
-
-              <p className="text-sm sm:text-base md:text-lg text-gray-500 mt-4 px-4">
-                {phase === "before5pm" && "Countdown to 5 PM, October 22, 2025"}
-                {phase === "after5pm" &&
-                  "Countdown to End of Day, October 22, 2025"}
-                {phase === "ended" && "The day has ended!"}
-              </p>
             </div>
+
+            {/* Password Input Section */}
+            {!timerStopped && (
+              <div className="mt-8 sm:mt-12 max-w-md mx-auto">
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                  <div>
+                    <input
+                      type="password"
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      disabled={isVerifying || (lockoutUntil !== null && lockoutUntil > Date.now())}
+                      placeholder="Enter password to stop timer"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isVerifying || !passwordInput || (lockoutUntil !== null && lockoutUntil > Date.now())}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isVerifying ? "Verifying..." : "Stop Timer"}
+                  </button>
+                  {errorMessage && (
+                    <p className="text-red-400 text-sm">{errorMessage}</p>
+                  )}
+                  <p className="text-gray-400 text-sm">
+                    Attempts remaining: {attemptsRemaining}/3
+                  </p>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </BackgroundBeamsWithCollision>
+
+      {/* Congratulations Dialog */}
+      {showCongrats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 border-2 border-white/20 rounded-2xl p-8 sm:p-12 max-w-lg mx-4 text-center shadow-2xl animate-[fadeIn_0.5s_ease-in-out]">
+            <div className="text-8xl mb-6 animate-[bounce_1s_ease-in-out_infinite]">
+              🎉
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Congratulations!
+            </h2>
+            <p className="text-xl text-gray-200 mb-6">
+              The timer has been stopped successfully!
+            </p>
+            <p className="text-lg text-gray-300">
+              Welcome back, Mayang! 🎊
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
