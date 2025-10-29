@@ -227,7 +227,7 @@ export default function Home() {
                       value={passwordInput}
                       onChange={(e) => setPasswordInput(e.target.value)}
                       disabled={isVerifying || (lockoutUntil !== null && lockoutUntil > Date.now())}
-                      placeholder="Enter password to stop timer"
+                      placeholder="Mayang should enter the password once she has been paid"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
@@ -254,19 +254,39 @@ export default function Home() {
       {/* Congratulations Dialog */}
       {showCongrats && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 border-2 border-white/20 rounded-2xl p-8 sm:p-12 max-w-lg mx-4 text-center shadow-2xl animate-[fadeIn_0.5s_ease-in-out]">
+          <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 border-2 border-white/20 rounded-2xl p-8 sm:p-12 max-w-2xl mx-4 text-center shadow-2xl animate-[fadeIn_0.5s_ease-in-out]">
             <div className="text-8xl mb-6 animate-[bounce_1s_ease-in-out_infinite]">
               🎉
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Congratulations!
+              Congratulations, Mayang!
             </h2>
+            <p className="text-xl text-gray-200 mb-4">
+              The time you've waited for has finally arrived!
+            </p>
             <p className="text-xl text-gray-200 mb-6">
-              The timer has been stopped successfully!
+              Finally, you have been paid! 🎊
             </p>
-            <p className="text-lg text-gray-300">
-              Welcome back, Mayang! 🎊
-            </p>
+            <div className="bg-white/10 rounded-lg p-6 mb-4">
+              <p className="text-lg text-gray-300 mb-2">
+                You have been paid on{" "}
+                <span className="text-white font-semibold">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </p>
+              <p className="text-lg text-gray-300">
+                You've waited for{" "}
+                <span className="text-white font-semibold">
+                  {timeElapsed.days} days, {timeElapsed.hours} hours, {timeElapsed.minutes} minutes, and {timeElapsed.seconds} seconds
+                </span>
+                {" "}to be paid.
+              </p>
+            </div>
           </div>
         </div>
       )}
